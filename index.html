@@ -145,7 +145,7 @@
 
 <script>
 // ────────────────────────────────────────────────────────────
-// [,��정] GAS 웹앱 배포 URL로 교체 필요
+// [설정] GAS 웹앱 배포 URL로 교체 필요
 // ────────────────────────────────────────────────────────────
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbxcQ48rOm7D6iWP6HXbnqWRdoKurbqkZF5Gbu29RHJkkiectiDbpiGC4bsQAg5p1Maiow/exec';
 
@@ -373,8 +373,9 @@ var App = {
     var action = (!App.isApprover || App.currentTab === 'mine') ? 'getMyList' : 'getList';
     console.log('[App.loadList] action:', action);
 
-    // GAS API 호출 (재시도 1회)
-    App._fetchWithRetry(GAS_URL + '?action=' + action, 2)
+    // GAS API 호출 (재시도 1회) — email 파라미터 포함
+    var emailParam = App.user && App.user.email ? '&email=' + encodeURIComponent(App.user.email) : '';
+    App._fetchWithRetry(GAS_URL + '?action=' + action + emailParam, 2)
       .then(function(data) {
         console.log('[App.loadList] 응답 건수:', (data.items || []).length);
         App.renderList(data.items || []);
@@ -460,7 +461,7 @@ var App = {
         fetch(GAS_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'saveFcmToken', token: token })
+          body: JSON.stringify({ action: 'saveFcmToken', token: token, email: App.user ? App.user.email : '' })
         }).then(function(r) { return r.json(); })
           .then(function(d) { console.log('[App.saveFcmToken] 저장 결과:', d); })
           .catch(function(e) { console.error('[App.saveFcmToken] 저장 실패:', e); });
@@ -506,4 +507,85 @@ var App = {
 App.init();
 </script>
 </body>
+</html>
+uest().then(function(permission) {
+      console.log('[App.requestPush] 권한 결과:', permission);
+      document.getElementById('push-banner').style.display = 'none';
+
+      if (permission === 'granted') {
+        App.pushEnabled = true;
+        document.getElementById('push-toggle').classList.add('on');
+        App.saveFcmToken();
+      } else if (permission === 'denied') {
+        App.showToast('알림이 차단되었습니다. 브라우저 설정에서 허용해 주세요.');
+      }
+    });
+  },
+
+  // ── FCM 토큰 발급 및 GAS에 저장 ──
+  saveFcmToken: function() {
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.ready.then(function(reg) {
+      // Firebase Messaging SDK 필요 (sw.js에서 처리)
+      // 여기서는 push 구독 방식 사용
+      reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: App._urlBase64ToUint8Array(VAPID_KEY)
+      }).then(function(sub) {
+        var token = JSON.stringify(sub);
+        console.log('[App.saveFcmToken] 구독 완료');
+
+        // GAS에 토큰 저장
+        fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'saveFcmToken', token: token, email: App.user ? App.user.email : '' })
+        }).then(function(r) { return r.json(); })
+          .then(function(d) { console.log('[App.saveFcmToken] 저장 결과:', d); })
+          .catch(function(e) { console.error('[App.saveFcmToken] 저장 실패:', e); });
+      }).catch(function(err) {
+        console.error('[App.saveFcmToken] 구독 실패:', err);
+      });
+    });
+  },
+
+  // ── fetch 재시도 유틸 ──
+  _fetchWithRetry: function(url, retries) {
+    return fetch(url).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).catch(function(err) {
+      if (retries > 1) {
+        console.warn('[_fetchWithRetry] 재시도...', err.message);
+        return new Promise(function(resolve) { setTimeout(resolve, 1500); })
+          .then(function() { return App._fetchWithRetry(url, retries - 1); });
+      }
+      throw err;
+    });
+  },
+
+  // ── VAPID 키 변환 유틸 ──
+  _urlBase64ToUint8Array: function(base64String) {
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    var rawData = window.atob(base64);
+    return new Uint8Array(Array.from(rawData).map(function(c) { return c.charCodeAt(0); }));
+  },
+
+  // ── 토스트 메시지 ──
+  showToast: function(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+  }
+};
+
+// 앱 시작
+App.init();
+</script>
+</body>
+</html>
+>
 </html>
