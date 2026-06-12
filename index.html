@@ -23,8 +23,8 @@
     #login-screen .logo { font-size:26px; font-weight:800; color:#185FA5; text-align:center; margin-top:24px; }
     #login-screen .sub { font-size:17px; color:#666; text-align:center; }
     .label { font-size:17px; font-weight:700; color:#333; margin-bottom:6px; }
-    #emp-search, #pw-input { width:100%; padding:16px; border:2px solid #d5dde8; border-radius:14px; font-size:19px; outline:none; min-height:56px; }
-    #emp-search:focus, #pw-input:focus { border-color:#185FA5; }
+    #emp-search, #pw-input, #sabun-input, #sabun-pw { width:100%; padding:16px; border:2px solid #d5dde8; border-radius:14px; font-size:19px; outline:none; min-height:56px; }
+    #emp-search:focus, #pw-input:focus, #sabun-input:focus, #sabun-pw:focus { border-color:#185FA5; }
     #emp-list { max-height:300px; overflow-y:auto; border:2px solid #eef1f5; border-radius:14px; margin-top:8px; }
     #emp-list:empty { display:none; }
     .emp-item { padding:16px; border-bottom:1px solid #f0f0f0; }
@@ -84,33 +84,15 @@
 
 <div class="wrap" id="login-screen">
   <div class="logo">🏥 휴가 알림</div>
-  <div class="sub">본인 이름을 찾아 선택한 뒤<br>비밀번호를 입력하세요</div>
-  <div id="step-select">
-    <div class="label">1. 이름 검색</div>
-    <input id="emp-search" type="text" placeholder="이름을 입력하세요" oninput="App.filterEmp(this.value)" autocomplete="off">
-    <div id="emp-list"></div>
-  </div>
-  <div id="to-sabun" style="text-align:center;margin-top:8px;"><span onclick="App.showSabunLogin()" style="color:#185FA5;font-size:16px;text-decoration:underline;cursor:pointer;">또는 사번으로 로그인 →</span></div>
-  <div id="step-pw" style="display:none">
-    <div class="selected-emp">
-      <div><div class="nm" id="sel-name">-</div><div class="inf" id="sel-info"></div></div>
-      <div class="chg" onclick="App.resetSelect()">변경</div>
-    </div>
-    <div style="height:16px"></div>
-    <div class="label">2. 비밀번호</div>
-    <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')App.doLogin()">
-    <div style="height:16px"></div>
-    <button class="btn-primary" id="login-btn" onclick="App.doLogin()">로그인</button>
-  </div>
-  <div id="step-sabun" style="display:none">
+  <div class="sub">사번과 비밀번호를 입력하세요</div>
+  <div>
     <div class="label">사번</div>
-    <input id="sabun-input" type="text" inputmode="numeric" placeholder="본인 사번" autocomplete="username">
-    <div style="height:16px"></div>
+    <input id="sabun-input" type="text" inputmode="numeric" placeholder="본인 사번 (예: 5003402)" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('sabun-pw').focus()">
+    <div style="height:18px"></div>
     <div class="label">비밀번호</div>
     <input id="sabun-pw" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')App.doSabunLogin()">
-    <div style="height:16px"></div>
+    <div style="height:20px"></div>
     <button class="btn-primary" id="sabun-btn" onclick="App.doSabunLogin()">로그인</button>
-    <div style="text-align:center;margin-top:14px;"><span onclick="App.showNameLogin()" style="color:#185FA5;font-size:16px;text-decoration:underline;cursor:pointer;">← 이름 검색으로 돌아가기</span></div>
   </div>
 </div>
 
@@ -195,12 +177,12 @@ var App = {
   showLogin: function() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
-    if (App._emps.length === 0) App.loadEmps();
+    setTimeout(function(){ var el=document.getElementById('sabun-input'); if(el) el.focus(); }, 150);
   },
   loadEmps: function() {
     api({ action:'employees' }).then(function(d){
       if (!d.ok) { App.toast(d.error || '직원 목록을 불러오지 못했습니다.'); return; }
-      App._emps = d.employees || []; App.renderEmps(App._emps);
+      var seen={}; App._emps = (d.employees || []).filter(function(e){ if(seen[e.sabun]) return false; seen[e.sabun]=true; return true; }); App.renderEmps(App._emps);
     }).catch(function(){ App.toast('네트워크 오류. 인터넷 연결을 확인해 주세요.'); });
   },
   filterEmp: function(q) {
