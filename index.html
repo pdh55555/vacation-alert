@@ -90,6 +90,7 @@
     <input id="emp-search" type="text" placeholder="이름을 입력하세요" oninput="App.filterEmp(this.value)" autocomplete="off">
     <div id="emp-list"></div>
   </div>
+  <div id="to-sabun" style="text-align:center;margin-top:8px;"><span onclick="App.showSabunLogin()" style="color:#185FA5;font-size:16px;text-decoration:underline;cursor:pointer;">또는 사번으로 로그인 →</span></div>
   <div id="step-pw" style="display:none">
     <div class="selected-emp">
       <div><div class="nm" id="sel-name">-</div><div class="inf" id="sel-info"></div></div>
@@ -100,6 +101,16 @@
     <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')App.doLogin()">
     <div style="height:16px"></div>
     <button class="btn-primary" id="login-btn" onclick="App.doLogin()">로그인</button>
+  </div>
+  <div id="step-sabun" style="display:none">
+    <div class="label">사번</div>
+    <input id="sabun-input" type="text" inputmode="numeric" placeholder="본인 사번" autocomplete="username">
+    <div style="height:16px"></div>
+    <div class="label">비밀번호</div>
+    <input id="sabun-pw" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')App.doSabunLogin()">
+    <div style="height:16px"></div>
+    <button class="btn-primary" id="sabun-btn" onclick="App.doSabunLogin()">로그인</button>
+    <div style="text-align:center;margin-top:14px;"><span onclick="App.showNameLogin()" style="color:#185FA5;font-size:16px;text-decoration:underline;cursor:pointer;">← 이름 검색으로 돌아가기</span></div>
   </div>
 </div>
 
@@ -121,14 +132,17 @@
 
 <div id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbyILWUloKwZ1tmxXmKaK-SyEZdpTnBX1uC-LDHYIz0I-3iKKNVbisGAxAnLaQZkkiKvgA/exec';
 var FIREBASE_CONFIG = {
-  apiKey: 'YOUR_WEB_API_KEY',
+  apiKey: 'AIzaSyBSk1iZF22x4XVibZYAZ1xaHQyehqIoHDM',
   authDomain: 'dhu-leave-notify-db94c.firebaseapp.com',
   projectId: 'dhu-leave-notify-db94c',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID'
+  storageBucket: 'dhu-leave-notify-db94c.firebasestorage.app',
+  messagingSenderId: '257549200977',
+  appId: '1:257549200977:web:98074d868fab2d89af5270'
 };
 var VAPID_KEY = 'BPCmKdfsgJp0-JL2edCcbY5RVLOI6ZxHzihEgozbuaOiBryH_mFIB17HQltvWlu_qy_rfvJffZle3-r_MfY-H4A';
 
@@ -144,7 +158,7 @@ var App = {
   init: function() {
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function(){}); }
     App.checkInstall();
-    var saved = sessionStorage.getItem('pwaUser');
+    var saved = localStorage.getItem('pwaUser');
     if (saved) { try { App.user = JSON.parse(saved); App.showApp(); return; } catch(e){} }
     App.showLogin();
   },
@@ -217,6 +231,23 @@ var App = {
     document.getElementById('step-pw').style.display = 'none';
     document.getElementById('step-select').style.display = 'block';
   },
+  showSabunLogin: function(){ document.getElementById('step-select').style.display='none'; document.getElementById('step-pw').style.display='none'; document.getElementById('step-sabun').style.display='block'; setTimeout(function(){var el=document.getElementById('sabun-input'); if(el) el.focus();},100); },
+  showNameLogin: function(){ document.getElementById('step-sabun').style.display='none'; document.getElementById('step-pw').style.display='none'; document.getElementById('step-select').style.display='block'; },
+  doSabunLogin: function(){
+    var sabun=(document.getElementById('sabun-input').value||'').trim();
+    var pw=document.getElementById('sabun-pw').value;
+    if(!sabun){ App.toast('사번을 입력하세요.'); return; }
+    if(!pw){ App.toast('비밀번호를 입력하세요.'); return; }
+    var btn=document.getElementById('sabun-btn'); btn.disabled=true; btn.textContent='로그인 중...';
+    api({ action:'login', sabun:sabun, pw:pw }).then(function(d){
+      btn.disabled=false; btn.textContent='로그인';
+      if(!d.ok){ App.toast(d.error||'로그인 실패'); return; }
+      App.user={ sabun:d.sabun, name:d.name, dept:d.dept, position:d.position, isApprover:d.isApprover };
+      localStorage.setItem('pwaUser', JSON.stringify(App.user));
+      App.showApp();
+    }).catch(function(){ btn.disabled=false; btn.textContent='로그인'; App.toast('네트워크 오류. 다시 시도해 주세요.'); });
+  },
+  logout: function(){ try{ localStorage.removeItem('pwaUser'); }catch(e){} App.closeAlarmSetup(); location.reload(); },
   doLogin: function() {
     if (!App._selected) return;
     var pw = document.getElementById('pw-input').value;
@@ -227,7 +258,7 @@ var App = {
       btn.disabled = false; btn.textContent = '로그인';
       if (!d.ok) { App.toast(d.error || '로그인 실패'); return; }
       App.user = { sabun:d.sabun, name:d.name, dept:d.dept, position:d.position, isApprover:d.isApprover };
-      sessionStorage.setItem('pwaUser', JSON.stringify(App.user));
+      localStorage.setItem('pwaUser', JSON.stringify(App.user));
       App.showApp();
     }).catch(function(){ btn.disabled=false; btn.textContent='로그인'; App.toast('네트워크 오류. 다시 시도해 주세요.'); });
   },
@@ -283,7 +314,7 @@ var App = {
   },
   checkEmpty: function(){ var el = document.getElementById('notif-list'); if (!el.querySelector('.card')) el.innerHTML = '<div class="empty">📭 대기 중인 결재가 없습니다.</div>'; },
 
-  openAlarmSetup: function(){ document.getElementById('alarm-modal-inner').innerHTML = App.buildAlarmHTML(); document.getElementById('alarm-modal').style.display = 'flex'; },
+  openAlarmSetup: function(){ document.getElementById('alarm-modal-inner').innerHTML = App.buildAlarmHTML() + '<div style="text-align:center;margin-top:20px;"><span onclick="App.logout()" style="color:#999;font-size:15px;text-decoration:underline;cursor:pointer;">로그아웃</span></div>'; document.getElementById('alarm-modal').style.display = 'flex'; },
   closeAlarmSetup: function(){ document.getElementById('alarm-modal').style.display = 'none'; },
   buildAlarmHTML: function() {
     var supported = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
@@ -328,11 +359,10 @@ var App = {
       if (typeof firebase === 'undefined') { console.warn('[푸시] Firebase SDK 미로딩'); return; }
       if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
       var messaging = firebase.messaging();
-      navigator.serviceWorker.ready.then(function(reg){
-        messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg })
-          .then(function(token){ if (token) api({ action:'saveToken', sabun: App.user.sabun, token: token }); })
-          .catch(function(err){ console.error('[푸시] 토큰 발급 실패:', err); });
-      });
+      navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: 'firebase-cloud-messaging-push-scope' })
+        .then(function(reg){ return messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg }); })
+        .then(function(token){ if (token) { api({ action:'saveToken', sabun: App.user.sabun, token: token }); App.toast('알림이 등록되었습니다.'); } else { App.toast('토큰을 받지 못했습니다. 다시 시도해 주세요.'); } })
+        .catch(function(err){ console.error('[푸시] 토큰 발급 실패:', err); App.toast('알림 등록 실패: ' + (err && (err.code || err.message) ? (err.code || err.message) : '알 수 없는 오류')); });
     } catch (e) { console.error('[푸시] 오류:', e); }
   },
   toast: function(msg) {
