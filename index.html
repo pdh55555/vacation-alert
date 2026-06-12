@@ -3,99 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#185FA5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="휴가알림">
-  <title>휴가 신청 현황</title>
+  <title>휴가 알림</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <style>
-    /* ── 기본 리셋 ── */
+    /* ===== 50~60대 배려: 큰 글씨(기본 18px), 큰 버튼(최소 52px) ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', sans-serif; background: #f5f5f5; color: #1a1a1a; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background: #f2f4f7; color: #1a1a1a; font-size: 18px; line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font-family: inherit; font-size: 18px; cursor: pointer; }
 
-    /* ── 로딩 화면 ── */
-    #loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 16px; }
-    #loading .spinner { width: 36px; height: 36px; border: 3px solid #e0e0e0; border-top-color: #185FA5; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    /* 로딩 */
+    #loading { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; gap:18px; }
+    .spinner { width:42px; height:42px; border:4px solid #d5dde8; border-top-color:#185FA5; border-radius:50%; animation:spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loading p { font-size: 14px; color: #888; }
+    #loading p { font-size:17px; color:#777; }
 
-    /* ── 로그인 화면 ── */
-    #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 20px; padding: 24px; }
-    #login-screen .app-title { font-size: 22px; font-weight: 600; color: #1a1a1a; }
-    #login-screen .app-sub { font-size: 14px; color: #888; text-align: center; line-height: 1.5; }
-    /* 검색 입력 */
-    #emp-search { width: 100%; max-width: 340px; padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; outline: none; }
-    #emp-search:focus { border-color: #185FA5; }
-    /* 직원 목록 */
-    #emp-list { width: 100%; max-width: 340px; max-height: 320px; overflow-y: auto; border: 1px solid #ececec; border-radius: 12px; background: #fff; }
-    #emp-list:empty { display: none; }
-    .emp-item { padding: 12px 16px; cursor: pointer; border-bottom: 0.5px solid #f0f0f0; display: flex; align-items: center; gap: 10px; transition: background 0.1s; }
-    .emp-item:last-child { border-bottom: none; }
-    .emp-item:active { background: #f0f6ff; }
-    .emp-item .emp-name { font-size: 15px; font-weight: 600; color: #1a1a1a; }
-    .emp-item .emp-info { font-size: 12px; color: #aaa; }
+    /* 공통 컨테이너 */
+    .wrap { max-width:480px; margin:0 auto; min-height:100vh; background:#fff; display:flex; flex-direction:column; }
 
-    /* ── 메인 앱 ── */
-    #app { display: none; flex-direction: column; height: 100vh; max-width: 480px; margin: 0 auto; background: #fff; }
+    /* 로그인 */
+    #login-screen { display:none; flex-direction:column; padding:28px 22px; gap:18px; }
+    #login-screen .logo { font-size:26px; font-weight:800; color:#185FA5; text-align:center; margin-top:24px; }
+    #login-screen .sub { font-size:17px; color:#666; text-align:center; }
+    .label { font-size:17px; font-weight:700; color:#333; margin-bottom:6px; }
+    #emp-search, #pw-input {
+      width:100%; padding:16px; border:2px solid #d5dde8; border-radius:14px;
+      font-size:19px; outline:none; min-height:56px;
+    }
+    #emp-search:focus, #pw-input:focus { border-color:#185FA5; }
+    #emp-list { max-height:300px; overflow-y:auto; border:2px solid #eef1f5; border-radius:14px; margin-top:8px; }
+    #emp-list:empty { display:none; }
+    .emp-item { padding:16px; border-bottom:1px solid #f0f0f0; }
+    .emp-item:last-child { border-bottom:none; }
+    .emp-item:active { background:#eaf3ff; }
+    .emp-item .nm { font-size:19px; font-weight:700; }
+    .emp-item .inf { font-size:15px; color:#999; margin-top:2px; }
+    .selected-emp { background:#eaf3ff; border:2px solid #185FA5; border-radius:14px; padding:16px; display:flex; justify-content:space-between; align-items:center; }
+    .selected-emp .nm { font-size:20px; font-weight:800; color:#185FA5; }
+    .selected-emp .chg { font-size:15px; color:#185FA5; text-decoration:underline; }
 
-    /* ── 헤더 ── */
-    .app-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px; background: #fff; border-bottom: 0.5px solid #eee; }
-    .app-header .title { font-size: 17px; font-weight: 600; }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    .push-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; cursor: pointer; }
-    .push-toggle .bell-icon { font-size: 20px; }
-    .push-toggle.on .bell-icon { color: #185FA5; }
+    .btn-primary {
+      width:100%; min-height:56px; background:#185FA5; color:#fff; border:none;
+      border-radius:14px; font-size:20px; font-weight:800; margin-top:4px;
+    }
+    .btn-primary:active { background:#12477c; }
+    .btn-primary:disabled { background:#9bb6d2; }
 
-    /* ── 탭 ── */
-    .tab-bar { display: flex; border-bottom: 0.5px solid #eee; }
-    .tab-item { flex: 1; padding: 12px 0; text-align: center; font-size: 13px; color: #aaa; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; }
-    .tab-item.active { color: #185FA5; border-bottom-color: #185FA5; }
+    /* 메인 앱 */
+    #app { display:none; flex-direction:column; height:100vh; }
+    .app-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:16px 18px; background:#185FA5; color:#fff;
+    }
+    .app-header .title { font-size:20px; font-weight:800; }
+    .app-header .who { font-size:14px; opacity:.9; margin-top:2px; }
+    .bell-btn {
+      background:rgba(255,255,255,.18); border:none; color:#fff;
+      min-width:52px; min-height:52px; border-radius:14px; font-size:24px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .bell-btn:active { background:rgba(255,255,255,.32); }
 
-    /* ── 리스트 ── */
-    .list-container { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-    .list-container::-webkit-scrollbar { display: none; }
+    .action-bar { display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid #eef1f5; }
+    .btn-ghost {
+      flex:1; min-height:48px; background:#eef3f9; color:#185FA5; border:2px solid #d6e3f1;
+      border-radius:12px; font-weight:700; font-size:16px;
+    }
+    .btn-ghost:active { background:#dde9f6; }
 
-    /* ── 카드 아이템 ── */
-    .leave-item { background: #fff; border-radius: 12px; border: 0.5px solid #ececec; padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.1s; }
-    .leave-item:active { background: #f8f8f8; }
+    .list { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
 
-    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .dot-wait { background: #378ADD; }
-    .dot-ok   { background: #639922; }
-    .dot-no   { background: #E24B4A; }
-    .dot-ing  { background: #EF9F27; }
+    .card { background:#fff; border:2px solid #eef1f5; border-radius:16px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+    .card .top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .card .nm { font-size:19px; font-weight:800; }
+    .card .dept { font-size:14px; color:#999; margin-left:6px; font-weight:500; }
+    .chip { font-size:14px; font-weight:800; padding:5px 12px; border-radius:20px; white-space:nowrap; }
+    .chip-wait { background:#E6F1FB; color:#185FA5; }
+    .chip-ok { background:#EAF3DE; color:#3B6D11; }
+    .chip-no { background:#FCEBEB; color:#A32D2D; }
+    .card .meta { font-size:16px; color:#555; margin-top:10px; }
+    .card .meta b { color:#1a1a1a; }
+    .card .row2 { display:flex; justify-content:flex-end; margin-top:14px; }
+    .btn-del {
+      min-height:48px; min-width:96px; background:#fff; color:#A32D2D;
+      border:2px solid #f0c9c9; border-radius:12px; font-weight:700; font-size:16px; padding:0 18px;
+    }
+    .btn-del:active { background:#fcebeb; }
 
-    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
-    .avatar-blue   { background: #E6F1FB; color: #185FA5; }
-    .avatar-green  { background: #EAF3DE; color: #3B6D11; }
-    .avatar-red    { background: #FCEBEB; color: #A32D2D; }
-    .avatar-purple { background: #EEEDFE; color: #3C3489; }
-    .avatar-amber  { background: #FAEEDA; color: #633806; }
+    .empty { text-align:center; color:#aaa; padding:60px 20px; font-size:18px; line-height:1.7; }
 
-    .item-body { flex: 1; min-width: 0; }
-    .item-row1 { display: flex; align-items: center; gap: 6px; }
-    .item-name { font-size: 14px; font-weight: 600; color: #1a1a1a; white-space: nowrap; }
-    .item-dept { font-size: 11px; color: #aaa; white-space: nowrap; }
-    .item-dates { font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* 알림설정 모달 */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end; }
+    .modal {
+      background:#fff; width:100%; max-width:480px; margin:0 auto; border-radius:22px 22px 0 0;
+      max-height:90vh; overflow-y:auto; padding:24px 22px 36px;
+    }
+    .modal h2 { font-size:22px; font-weight:800; margin-bottom:6px; }
+    .modal .desc { font-size:16px; color:#666; margin-bottom:18px; }
+    .step {
+      display:flex; gap:14px; align-items:flex-start; padding:14px;
+      background:#f6f8fb; border-radius:14px; margin-bottom:12px;
+    }
+    .step .num {
+      flex-shrink:0; width:34px; height:34px; border-radius:50%; background:#185FA5; color:#fff;
+      font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center;
+    }
+    .step .txt { font-size:17px; line-height:1.55; }
+    .step .txt b { color:#185FA5; }
+    .modal .note { font-size:15px; color:#A32D2D; background:#fcf0f0; border-radius:12px; padding:12px 14px; margin:8px 0 16px; }
+    .modal .ok-banner { font-size:16px; color:#3B6D11; background:#eef7e0; border-radius:12px; padding:14px; margin-bottom:16px; font-weight:700; text-align:center; }
+    .btn-close { width:100%; min-height:54px; background:#eef1f5; color:#333; border:none; border-radius:14px; font-weight:700; font-size:18px; margin-top:10px; }
+    .guide-title { font-size:18px; font-weight:800; margin:18px 0 10px; color:#185FA5; display:flex; align-items:center; gap:8px; }
 
-    .chip { flex-shrink: 0; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
-    .chip-wait { background: #E6F1FB; color: #185FA5; }
-    .chip-ok   { background: #EAF3DE; color: #3B6D11; }
-    .chip-no   { background: #FCEBEB; color: #A32D2D; }
-    .chip-ing  { background: #FAEEDA; color: #633806; }
-
-    /* ── 빈 화면 ── */
-    .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; gap: 8px; color: #bbb; font-size: 14px; }
-    .empty svg { opacity: 0.3; }
-
-    /* ── 알림 권한 배너 ── */
-    #push-banner { display: none; margin: 10px 12px 0; background: #E6F1FB; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #185FA5; cursor: pointer; }
-    #push-banner span { font-weight: 600; }
-
-    /* ── 에러 토스트 ── */
-    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; display: none; z-index: 999; white-space: nowrap; }
+    /* 토스트 */
+    #toast {
+      position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+      background:#262b33; color:#fff; padding:14px 22px; border-radius:14px;
+      font-size:16px; display:none; z-index:200; max-width:90%; text-align:center; line-height:1.5;
+    }
   </style>
 </head>
 <body>
@@ -103,484 +137,406 @@
 <!-- 로딩 -->
 <div id="loading">
   <div class="spinner"></div>
-  <p>로그인 확인 중...</p>
+  <p>불러오는 중...</p>
 </div>
 
 <!-- 로그인 -->
-<div id="login-screen">
-  <div class="app-title">휴가 신청 현황</div>
-  <div class="app-sub" id="login-sub">이름을 검색하여 선택하세요</div>
-  <input id="emp-search" type="text" placeholder="이름 검색..." oninput="App.filterEmployees(this.value)" autocomplete="off" style="display:none">
-  <div id="emp-list"></div>
+<div class="wrap" id="login-screen">
+  <div class="logo">🏥 휴가 알림</div>
+  <div class="sub">본인 이름을 찾아 선택한 뒤<br>비밀번호를 입력하세요</div>
+
+  <div id="step-select">
+    <div class="label">1. 이름 검색</div>
+    <input id="emp-search" type="text" placeholder="이름을 입력하세요" oninput="App.filterEmp(this.value)" autocomplete="off">
+    <div id="emp-list"></div>
+  </div>
+
+  <div id="step-pw" style="display:none">
+    <div class="selected-emp">
+      <div><div class="nm" id="sel-name">-</div><div class="inf" id="sel-info"></div></div>
+      <div class="chg" onclick="App.resetSelect()">변경</div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="label">2. 비밀번호</div>
+    <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')App.doLogin()">
+    <div style="height:16px"></div>
+    <button class="btn-primary" id="login-btn" onclick="App.doLogin()">로그인</button>
+  </div>
 </div>
 
 <!-- 메인 앱 -->
-<div id="app">
+<div class="wrap" id="app">
   <div class="app-header">
-    <div class="title" id="header-title">휴가 신청 현황</div>
-    <div class="header-right">
-      <div class="push-toggle" id="push-toggle" onclick="App.togglePush()" title="알림 설정">
-        <span class="bell-icon">🔔</span>
-      </div>
+    <div>
+      <div class="title">📋 결재 알림</div>
+      <div class="who" id="who"></div>
     </div>
+    <button class="bell-btn" onclick="App.openAlarmSetup()" title="알림 설정">🔔</button>
   </div>
 
-  <!-- 결재권자 전용 탭 -->
-  <div class="tab-bar" id="tab-bar" style="display:none">
-    <div class="tab-item active" onclick="App.switchTab('approver')">결재 목록</div>
-    <div class="tab-item" onclick="App.switchTab('mine')">내 신청</div>
+  <div class="action-bar">
+    <button class="btn-ghost" onclick="App.loadNotifs()">🔄 새로고침</button>
+    <button class="btn-ghost" onclick="App.clearAll()">✓ 전체 읽음 처리</button>
   </div>
 
-  <!-- 알림 허용 유도 배너 -->
-  <div id="push-banner" onclick="App.requestPush()">
-    🔔 <span>알림을 허용</span>하면 승인 즉시 알려드립니다.
-  </div>
-
-  <!-- 신청 목록 -->
-  <div class="list-container" id="list-container"></div>
+  <div class="list" id="notif-list"></div>
 </div>
 
-<!-- 에러 토스트 -->
+<!-- 알림설정 모달 -->
+<div class="modal-bg" id="alarm-modal">
+  <div class="modal" id="alarm-modal-inner"></div>
+</div>
+
+<!-- 토스트 -->
 <div id="toast"></div>
 
 <script>
-// ────────────────────────────────────────────────────────────
-// [설정] GAS 웹앱 배포 URL로 교체 필요
-// ────────────────────────────────────────────────────────────
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbxcQ48rOm7D6iWP6HXbnqWRdoKurbqkZF5Gbu29RHJkkiectiDbpiGC4bsQAg5p1Maiow/exec';
+// ============================================================
+// [설정]
+// ============================================================
+// dhuhq 운영 GAS 배포 주소
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbyILWUloKwZ1tmxXmKaK-SyEZdpTnBX1uC-LDHYIz0I-3iKKNVbisGAxAnLaQZkkiKvgA/exec';
 
-// 알림 클릭 시 열릴 링크
-var DEEP_LINK = 'https://m.site.naver.com/25PFE';
+// 알림 클릭 시 열릴 주소
+var DEEP_LINK = GAS_URL;
 
-// Firebase 설정 (Firebase 콘솔에서 복사)
+// ── Firebase 푸시 설정 (★ Firebase 콘솔에서 실제 값으로 채워야 '푸시 수신'이 동작합니다) ──
+// Firebase 콘솔 → 프로젝트 설정 → 일반 → 내 앱 → "SDK 설정 및 구성"에서 복사
 var FIREBASE_CONFIG = {
-  apiKey: 'YOUR_API_KEY',
-  projectId: 'YOUR_PROJECT_ID',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID'
+  apiKey: 'YOUR_WEB_API_KEY',                 // ★ 채우기
+  authDomain: 'dhu-leave-notify-db94c.firebaseapp.com',
+  projectId: 'dhu-leave-notify-db94c',
+  messagingSenderId: 'YOUR_SENDER_ID',        // ★ 채우기
+  appId: 'YOUR_APP_ID'                        // ★ 채우기
 };
 var VAPID_KEY = 'BPCmKdfsgJp0-JL2edCcbY5RVLOI6ZxHzihEgozbuaOiBryH_mFIB17HQltvWlu_qy_rfvJffZle3-r_MfY-H4A';
 
-// ────────────────────────────────────────────────────────────
-// 아바타 색상 사이클 (이름 첫 글자 기준)
-// ───────────────────────────────────────────────────────────────
-var AVATAR_CLASSES = ['avatar-blue','avatar-green','avatar-purple','avatar-amber','avatar-red'];
-function avatarClass(name) {
-  var code = (name || '').charCodeAt(0) || 0;
-  return AVATAR_CLASSES[code % AVATAR_CLASSES.length];
+// ============================================================
+// 통신 헬퍼 — CORS 우회를 위해 Content-Type 을 지정하지 않습니다(text/plain)
+// ============================================================
+function api(payload) {
+  return fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload), redirect:'follow' })
+    .then(function(r){ return r.json(); });
 }
 
-// ────────────────────────────────────────────────────────────
-// 상태 → 닷/칩 클래스 매핑
-// ────────────────────────────────────────────────────────────
-var STATUS_MAP = {
-  '대기':   { dot: 'dot-wait', chip: 'chip-wait', label: '대기' },
-  '진행중': { dot: 'dot-ing',  chip: 'chip-ing',  label: '진행' },
-  '승인':   { dot: 'dot-ok',   chip: 'chip-ok',   label: '승인' },
-  '반려':   { dot: 'dot-no',   chip: 'chip-no',   label: '반려' }
+// ============================================================
+// 앱
+// ============================================================
+var STATUS_CHIP = {
+  '대기': 'chip-wait', '승인': 'chip-ok', '반려': 'chip-no', '취소': 'chip-no'
 };
 
-// ────────────────────────────────────────────────────────────
-// 날짜 + 구분 표시 문자열
-// ────────────────────────────────────────────────────────────
-function buildDateStr(item) {
-  var s = item.startDate + ' ' + (item.startType || '');
-  if (item.endDate && item.endDate !== item.startDate) {
-    s += ' ~ ' + item.endDate;
-  }
-  s += ' · ' + (item.leaveType || '');
-  return s.trim();
-}
-
-// ────────────────────────────────────────────────────────────
-// 단일 카드 HTML 생성
-// ────────────────────────────────────────────────────────────
-function buildItemHTML(item) {
-  var st = STATUS_MAP[item.status] || STATUS_MAP['대기'];
-  var initial = (item.name || '?').charAt(0);
-  return [
-    '<div class="leave-item" onclick="App.openLink()">',
-      '<div class="dot ' + st.dot + '"></div>',
-      '<div class="avatar ' + avatarClass(item.name) + '">' + initial + '</div>',
-      '<div class="item-body">',
-        '<div class="item-row1">',
-          '<span class="item-name">' + item.name + '</span>',
-          '<span class="item-dept">' + item.dept + '</span>',
-        '</div>',
-        '<div class="item-dates">' + buildDateStr(item) + '</div>',
-      '</div>',
-      '<span class="chip ' + st.chip + '">' + st.label + '</span>',
-    '</div>'
-  ].join('');
-}
-
-// ────────────────────────────────────────────────────────────
-// 앱 메인 로직
-// ────────────────────────────────────────────────────────────
 var App = {
   user: null,
-  isApprover: false,
-  currentTab: 'approver',  // 'approver' | 'mine'
-  pushEnabled: false,
-  _allEmployees: [],  // 직원 목록 캐시
+  _emps: [],
+  _selected: null,
 
-  // ── 초기화 ──
   init: function() {
-    console.log('[App.init] 시작');
-    // Service Worker 등록
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(function(reg) { console.log('[SW] 등록 완료:', reg.scope); })
-        .catch(function(err) { console.error('[SW] 등록 실패:', err); });
+      navigator.serviceWorker.register('sw.js').catch(function(){});
     }
-    // 저장된 이메일로 자동 로그인 시도
-    var savedEmail = sessionStorage.getItem('authEmail');
-    if (savedEmail) {
-      App.checkAuth(savedEmail);
-    } else {
-      App.showLogin();
+    var saved = sessionStorage.getItem('pwaUser');
+    if (saved) {
+      try { App.user = JSON.parse(saved); App.showApp(); return; } catch(e){}
     }
+    App.showLogin();
   },
 
-  // ── 인증 확인 ──
-  checkAuth: function(email) {
-    console.log('[App.checkAuth] GAS 인증 확인, email:', email);
-    fetch(GAS_URL + '?action=checkAuth&email=' + encodeURIComponent(email || ''))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        console.log('[App.checkAuth] 응답:', JSON.stringify(data));
-        if (data.authenticated) {
-          sessionStorage.setItem('authEmail', data.email);
-          App.user = data;
-          App.isApprover = data.isApprover;
-          App.showApp();
-        } else {
-          sessionStorage.removeItem('authEmail');
-          App.showLogin();
-        }
+  // ---------- 로그인 ----------
+  showLogin: function() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    if (App._emps.length === 0) App.loadEmps();
+  },
+
+  loadEmps: function() {
+    api({ action:'employees' })
+      .then(function(d){
+        if (!d.ok) { App.toast(d.error || '직원 목록을 불러오지 못했습니다.'); return; }
+        App._emps = d.employees || [];
+        App.renderEmps(App._emps);
       })
-      .catch(function(err) {
-        console.error('[App.checkAuth] 오류:', err);
-        App.showLogin();
-      });
+      .catch(function(){ App.toast('네트워크 오류. 인터넷 연결을 확인해 주세요.'); });
   },
 
-  // ── 로그인 화면 ‒ 직원 목록 로드 ──
-  loadEmployees: function() {
-    document.getElementById('login-sub').textContent = '직원 목록을 불러오는 중...';
-    fetch(GAS_URL + '?action=getEmployees')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.error || !data.employees) {
-          document.getElementById('login-sub').textContent = '직원 목록을 불러올 수 없습니다. 잠시 후 다시 시도하세요.';
-          return;
-        }
-        App._allEmployees = data.employees;
-        document.getElementById('login-sub').textContent = '이름을 검색하여 선택하세요';
-        document.getElementById('emp-search').style.display = 'block';
-        document.getElementById('emp-search').focus();
-        App.renderEmployeeList(data.employees);
-      })
-      .catch(function(err) {
-        console.error('[App.loadEmployees] 오류:', err);
-        document.getElementById('login-sub').textContent = '네트워크 오류. 다시 시도해 주세요.';
-      });
+  filterEmp: function(q) {
+    q = (q || '').trim();
+    if (!q) { App.renderEmps(App._emps); return; }
+    App.renderEmps(App._emps.filter(function(e){
+      return e.name.indexOf(q) > -1 || e.dept.indexOf(q) > -1;
+    }));
   },
 
-  // ── 직원 검색 필터 ──
-  filterEmployees: function(query) {
-    var q = (query || '').trim();
-    if (!q) {
-      App.renderEmployeeList(App._allEmployees);
-      return;
-    }
-    var filtered = App._allEmployees.filter(function(emp) {
-      return emp.name.indexOf(q) >= 0 || emp.dept.indexOf(q) >= 0;
-    });
-    App.renderEmployeeList(filtered);
-  },
-
-  // ── 직원 목록 렌더링 ──
-  renderEmployeeList: function(employees) {
-    var list = document.getElementById('emp-list');
-    if (!employees || employees.length === 0) {
-      list.innerHTML = '<div class="emp-item"><span class="emp-info">검색 결과 없음</span></div>';
-      return;
-    }
-    list.innerHTML = employees.map(function(emp) {
-      return '<div class="emp-item" onclick="App.selectEmployee(\'' +
-        emp.email.replace(/'/g, "\\'") + '\',\'' +
-        emp.name.replace(/'/g, "\\'") + '\')">' +
-        '<div><div class="emp-name">' + emp.name + '</div>' +
-        '<div class="emp-info">' + emp.dept + (emp.position ? ' · ' + emp.position : '') + '</div></div>' +
-        '</div>';
+  renderEmps: function(list) {
+    var el = document.getElementById('emp-list');
+    if (!list || list.length === 0) { el.innerHTML = '<div class="emp-item"><span class="inf">검색 결과가 없습니다.</span></div>'; return; }
+    el.innerHTML = list.slice(0, 50).map(function(e){
+      return '<div class="emp-item" onclick="App.selectEmp(\'' + esc(e.sabun) + '\')">' +
+        '<div class="nm">' + esc(e.name) + '</div>' +
+        '<div class="inf">' + esc(e.dept) + (e.position ? ' · ' + esc(e.position) : '') + '</div></div>';
     }).join('');
   },
 
-  // ── 직원 선택 → 인증 확인 ──
-  selectEmployee: function(email, name) {
-    console.log('[App.selectEmployee]', name, email);
-    document.getElementById('login-sub').textContent = name + ' 님으로 로그인 중...';
-    document.getElementById('emp-search').style.display = 'none';
-    document.getElementById('emp-list').innerHTML = '';
-    App.checkAuth(email);
+  selectEmp: function(sabun) {
+    var e = App._emps.filter(function(x){ return String(x.sabun) === String(sabun); })[0];
+    if (!e) return;
+    App._selected = e;
+    document.getElementById('sel-name').textContent = e.name;
+    document.getElementById('sel-info').textContent = e.dept + (e.position ? ' · ' + e.position : '');
+    document.getElementById('step-select').style.display = 'none';
+    document.getElementById('step-pw').style.display = 'block';
+    setTimeout(function(){ document.getElementById('pw-input').focus(); }, 100);
   },
 
-  // ── 화면 전환 ──
+  resetSelect: function() {
+    App._selected = null;
+    document.getElementById('pw-input').value = '';
+    document.getElementById('step-pw').style.display = 'none';
+    document.getElementById('step-select').style.display = 'block';
+  },
+
+  doLogin: function() {
+    if (!App._selected) return;
+    var pw = document.getElementById('pw-input').value;
+    if (!pw) { App.toast('비밀번호를 입력하세요.'); return; }
+    var btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = '로그인 중...';
+    api({ action:'login', sabun: App._selected.sabun, pw: pw })
+      .then(function(d){
+        btn.disabled = false; btn.textContent = '로그인';
+        if (!d.ok) { App.toast(d.error || '로그인 실패'); return; }
+        App.user = { sabun:d.sabun, name:d.name, dept:d.dept, position:d.position, isApprover:d.isApprover };
+        sessionStorage.setItem('pwaUser', JSON.stringify(App.user));
+        App.showApp();
+      })
+      .catch(function(){ btn.disabled=false; btn.textContent='로그인'; App.toast('네트워크 오류. 다시 시도해 주세요.'); });
+  },
+
+  // ---------- 메인 ----------
   showApp: function() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-
-    // 결재권자이면 탭 표시
-    if (App.isApprover) {
-      document.getElementById('tab-bar').style.display = 'flex';
-      document.getElementById('header-title').textContent = '결재 목록';
-    } else {
-      document.getElementById('header-title').textContent = '내 휴가 현황';
-    }
-
-    // 알림 배너 표시 여부 확인
-    App.checkPushStatus();
-
-    // 목록 로드
-    App.loadList();
+    document.getElementById('who').textContent = App.user.name + ' 님 · ' + (App.user.dept || '');
+    App.loadNotifs();
   },
 
-  showLogin: function() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    // 직원 목록이 아직 없으면 로드
-    if (App._allEmployees.length === 0) {
-      App.loadEmployees();
-    }
-  },
-
-  // ── 탭 전환 ──
-  switchTab: function(tab) {
-    App.currentTab = tab;
-    document.querySelectorAll('.tab-item').forEach(function(el, i) {
-      el.classList.toggle('active', (i === 0 && tab === 'approver') || (i === 1 && tab === 'mine'));
-    });
-    App.loadList();
-  },
-
-  // ── 목록 로드 ──
-  loadList: function() {
-    var container = document.getElementById('list-container');
-    container.innerHTML = '<div class="empty"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div></div>';
-
-    var action = (!App.isApprover || App.currentTab === 'mine') ? 'getMyList' : 'getList';
-    console.log('[App.loadList] action:', action);
-
-    // GAS API 호출 (재시도 1회) — email 파라미터 포함
-    var emailParam = App.user && App.user.email ? '&email=' + encodeURIComponent(App.user.email) : '';
-    App._fetchWithRetry(GAS_URL + '?action=' + action + emailParam, 2)
-      .then(function(data) {
-        console.log('[App.loadList] 응답 건수:', (data.items || []).length);
-        App.renderList(data.items || []);
+  loadNotifs: function() {
+    var el = document.getElementById('notif-list');
+    el.innerHTML = '<div class="empty"><div class="spinner" style="margin:0 auto 14px"></div>불러오는 중...</div>';
+    api({ action:'notifications', sabun: App.user.sabun })
+      .then(function(d){
+        if (!d.ok) { el.innerHTML = '<div class="empty">' + esc(d.error || '불러오지 못했습니다.') + '</div>'; return; }
+        App.renderNotifs(d.items || []);
       })
-      .catch(function(err) {
-        console.error('[App.loadList] 오류:', err);
-        container.innerHTML = '<div class="empty">데이터를 불러올 수 없습니다.<br>잠시 후 다시 시도해 주세요.</div>';
-      });
+      .catch(function(){ el.innerHTML = '<div class="empty">네트워크 오류로<br>목록을 불러오지 못했습니다.<br><br>잠시 후 새로고침을 눌러주세요.</div>'; });
   },
 
-  // ── 목록 렌더링 ──
-  renderList: function(items) {
-    var container = document.getElementById('list-container');
+  renderNotifs: function(items) {
+    var el = document.getElementById('notif-list');
     if (!items || items.length === 0) {
-      container.innerHTML = '<div class="empty">📋 신청 내역이 없습니다.</div>';
+      el.innerHTML = '<div class="empty">📭 새 결재 알림이 없습니다.</div>';
       return;
     }
-    container.innerHTML = items.map(buildItemHTML).join('');
+    el.innerHTML = items.map(function(it){
+      var st = it.status || '대기';
+      var chip = STATUS_CHIP[st] || 'chip-wait';
+      var period = esc(it.startDate || '');
+      if (it.endDate && it.endDate !== it.startDate) period += ' ~ ' + esc(it.endDate);
+      return '<div class="card">' +
+        '<div class="top">' +
+          '<div><span class="nm">' + esc(it.name || '신청') + '</span><span class="dept">' + esc(it.dept || '') + '</span></div>' +
+          '<span class="chip ' + chip + '">' + esc(st) + '</span>' +
+        '</div>' +
+        '<div class="meta">휴가종류 : <b>' + esc(it.leaveType || '-') + '</b></div>' +
+        '<div class="meta">기간 : <b>' + period + '</b>' + (it.days ? ' (' + esc(it.days) + '일)' : '') + '</div>' +
+        '<div class="row2"><button class="btn-del" onclick="App.delNotif(\'' + esc(it.docId) + '\', this)">알림 삭제</button></div>' +
+      '</div>';
+    }).join('');
   },
 
-  // ── 항목 클릭 → 외부 링크 ──
-  openLink: function() {
-    window.open(DEEP_LINK, '_blank');
+  delNotif: function(docId, btn) {
+    btn.disabled = true; btn.textContent = '삭제 중...';
+    api({ action:'deleteNotif', docId: docId })
+      .then(function(d){
+        if (d.ok) { var card = btn.closest('.card'); if (card) card.remove(); App.checkEmpty(); }
+        else { btn.disabled=false; btn.textContent='알림 삭제'; App.toast(d.error || '삭제 실패'); }
+      })
+      .catch(function(){ btn.disabled=false; btn.textContent='알림 삭제'; App.toast('네트워크 오류'); });
   },
 
-  // ── 알림 상태 확인 (실제 구독 여부 기준) ──
-  checkPushStatus: function() {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-
-    var perm = Notification.permission;
-    if (perm === 'denied') {
-      // 차단됨 - 배너/토글 모두 off 상태 유지
-      App.pushEnabled = false;
-      return;
-    }
-
-    // 실제 push 구독 여부 확인
-    navigator.serviceWorker.ready.then(function(reg) {
-      reg.pushManager.getSubscription().then(function(sub) {
-        if (sub && perm === 'granted') {
-          App.pushEnabled = true;
-          document.getElementById('push-toggle').classList.add('on');
-          document.getElementById('push-banner').style.display = 'none';
-        } else if (perm === 'default') {
-          App.pushEnabled = false;
-          document.getElementById('push-banner').style.display = 'block';
-        }
-      });
-    });
+  clearAll: function() {
+    if (!confirm('모든 알림을 읽음 처리(삭제)할까요?\n실제 결재 내용은 그대로 유지됩니다.')) return;
+    App.toast('처리 중...');
+    api({ action:'clearNotifs', sabun: App.user.sabun })
+      .then(function(d){
+        if (d.ok) { App.renderNotifs([]); App.toast('전체 읽음 처리되었습니다.'); }
+        else App.toast(d.error || '처리 실패');
+      })
+      .catch(function(){ App.toast('네트워크 오류'); });
   },
 
-  // ── 알림 켜기/끄기 토글 ──
-  togglePush: function() {
-    if (App.pushEnabled) {
-      // 끄기: 구독 해지 + 서버 토큰 삭제
-      App.disablePush();
-    } else {
-      if (!('Notification' in window)) {
-        App.showToast('이 브라우저는 알림을 지원하지 않습니다.');
-        return;
-      }
-      if (Notification.permission === 'denied') {
-        App.showPushDeniedGuide();
-      } else {
-        App.requestPush();
-      }
-    }
+  checkEmpty: function() {
+    var el = document.getElementById('notif-list');
+    if (!el.querySelector('.card')) el.innerHTML = '<div class="empty">📭 새 결재 알림이 없습니다.</div>';
   },
 
-  // ── 알림 끄기: 구독 해지 + 서버 토큰 삭제 ──
-  disablePush: function() {
-    App.pushEnabled = false;
-    document.getElementById('push-toggle').classList.remove('on');
-
-    // 서비스워커 구독 해지
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(function(reg) {
-        reg.pushManager.getSubscription().then(function(sub) {
-          if (sub) {
-            sub.unsubscribe().then(function() {
-              console.log('[App.disablePush] 구독 해지 완료');
-            });
-          }
-        });
-      });
-    }
-
-    // 서버(GAS)에서 FCM 토큰 삭제
-    if (App.user && App.user.email) {
-      fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'deleteFcmToken', email: App.user.email })
-      }).then(function(r) { return r.json(); })
-        .then(function(d) { console.log('[App.disablePush] 토큰 삭제:', d); })
-        .catch(function(e) { console.error('[App.disablePush] 토큰 삭제 실패:', e); });
-    }
-
-    App.showToast('알림이 꺼졌습니다.');
+  // ---------- 알림 설정 ----------
+  openAlarmSetup: function() {
+    var inner = document.getElementById('alarm-modal-inner');
+    inner.innerHTML = App.buildAlarmHTML();
+    document.getElementById('alarm-modal').style.display = 'flex';
+  },
+  closeAlarmSetup: function() {
+    document.getElementById('alarm-modal').style.display = 'none';
   },
 
-  // ── 알림 차단 상태 안내 (브라우저/OS별 맞춤) ──
-  showPushDeniedGuide: function() {
+  buildAlarmHTML: function() {
+    var supported = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
+    var perm = ('Notification' in window) ? Notification.permission : 'unsupported';
     var ua = navigator.userAgent;
-    var guide = '';
-    if (/SamsungBrowser/i.test(ua)) {
-      guide = '삼성 브라우저 → ⋮ 메뉴 → 설정 → 사이트 및 다운로드 → 사이트 권한 → 알림 → 이 사이트 허용';
-    } else if (/android/i.test(ua)) {
-      guide = '주소창 왼쪽 자물쇠(🔒) 탭 → 사이트 설정 → 알림 → 허용';
-    } else if (/iphone|ipad/i.test(ua)) {
-      guide = '설정 앱 → Safari → 고급 → 웹 푸시 알림 → 이 사이트 허용\n※ 홈 화면에 추가된 앱에서만 작동합니다.';
-    } else if (/Edg/i.test(ua)) {
-      guide = '주소창 자물쇠(🔒) → 권한 → 알림 → 허용';
-    } else {
-      guide = '주소창 왼쪽 자물쇠(🔒) 클릭 → 사이트 설정 → 알림 → 허용';
+    var isIOS = /iphone|ipad|ipod/i.test(ua);
+    var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+    var html = '<h2>🔔 알림 설정</h2>';
+
+    // 1) 미지원 환경
+    if (!supported && !isIOS) {
+      html += '<div class="note">이 브라우저는 알림(푸시)을 지원하지 않습니다.<br>아래 권장 브라우저로 다시 접속해 주세요.</div>';
+      html += App.guideWindowsBrowsers();
+      html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
+      return html;
     }
-    App.showToast('알림이 차단되어 있습니다. ' + guide);
-    // 모바일은 토스트가 잘릴 수 있으므로 alert도 함께
-    if (/mobile|android|iphone|ipad/i.test(ua)) {
-      setTimeout(function() { alert('알림 허용 방법\n\n' + guide); }, 300);
+
+    // 2) iOS: 홈 화면 추가가 필수
+    if (isIOS && !isStandalone) {
+      html += '<div class="desc">아이폰·아이패드는 <b>홈 화면에 추가</b>해야만 알림을 받을 수 있습니다.</div>';
+      html += '<div class="guide-title">📱 아이폰 홈 화면 추가 방법</div>';
+      html += App.step(1, '사파리(Safari) 아래쪽 가운데 <b>공유 버튼(□ 위에 ↑)</b>을 누릅니다.');
+      html += App.step(2, '메뉴를 위로 올려 <b>"홈 화면에 추가"</b>를 누릅니다.');
+      html += App.step(3, '오른쪽 위 <b>"추가"</b>를 누릅니다.');
+      html += App.step(4, '홈 화면에 생긴 <b>"휴가알림"</b> 아이콘으로 다시 들어옵니다.');
+      html += App.step(5, '그 화면에서 이 <b>🔔 알림 설정</b>을 한 번 더 눌러주세요.');
+      html += '<div class="note">※ 크롬이 아니라 반드시 <b>사파리</b>에서 추가해야 합니다.</div>';
+      html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
+      return html;
     }
+
+    // 3) 이미 허용됨
+    if (perm === 'granted') {
+      html += '<div class="ok-banner">✅ 알림이 켜져 있습니다.<br>승인·반려가 되면 휴대폰으로 알려드립니다.</div>';
+      html += '<button class="btn-primary" onclick="App.enablePush()">알림 다시 등록하기</button>';
+      html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
+      return html;
+    }
+
+    // 4) 아직 안 물어봄 → 허용 요청
+    if (perm === 'default') {
+      html += '<div class="desc">아래 버튼을 누르면 "알림을 허용하시겠어요?" 라는 물음이 나옵니다. <b>허용</b>을 눌러주세요.</div>';
+      html += '<button class="btn-primary" onclick="App.enablePush()">알림 허용하기</button>';
+      html += '<div style="height:10px"></div>';
+      html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
+      return html;
+    }
+
+    // 5) 차단됨(denied) → 브라우저/OS별 해제 방법
+    html += '<div class="note">현재 알림이 <b>차단</b>되어 있습니다.<br>아래 방법으로 차단을 풀어주세요.</div>';
+    html += App.guideByBrowser(ua);
+    html += '<div class="desc" style="margin-top:14px">👉 설정을 바꾼 뒤, 이 <b>🔔 알림 설정</b>을 다시 눌러주세요.</div>';
+    html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
+    return html;
   },
 
-  // ── 알림 권한 요청 + FCM 토큰 저장 ──
-  requestPush: function() {
-    if (!('Notification' in window)) {
-      App.showToast('이 브라우저는 알림을 지원하지 않습니다.');
+  step: function(n, txt) {
+    return '<div class="step"><div class="num">' + n + '</div><div class="txt">' + txt + '</div></div>';
+  },
+
+  guideByBrowser: function(ua) {
+    if (/SamsungBrowser/i.test(ua)) {
+      return '<div class="guide-title">📱 삼성 인터넷</div>' +
+        App.step(1, '주소창 왼쪽 <b>자물쇠 🔒</b> 를 누릅니다.') +
+        App.step(2, '<b>"권한"</b> 또는 <b>"알림"</b>을 누릅니다.') +
+        App.step(3, '<b>"허용"</b>으로 바꿉니다.');
+    }
+    if (/Edg/i.test(ua)) {
+      return '<div class="guide-title">📱 엣지(Edge)</div>' +
+        App.step(1, '주소창 왼쪽 <b>자물쇠 🔒</b> 를 누릅니다.') +
+        App.step(2, '<b>"이 사이트의 권한"</b> → <b>"알림"</b> 으로 들어갑니다.') +
+        App.step(3, '<b>"허용"</b>으로 바꿉니다.');
+    }
+    if (/Firefox/i.test(ua)) {
+      return '<div class="guide-title">📱 파이어폭스</div>' +
+        App.step(1, '주소창 왼쪽 <b>자물쇠 🔒</b> 를 누릅니다.') +
+        App.step(2, '<b>"권한 수정"</b> 에서 알림을 찾습니다.') +
+        App.step(3, '<b>"허용"</b>으로 바꿉니다.');
+    }
+    // 기본: 안드로이드 크롬
+    return '<div class="guide-title">📱 크롬(Chrome)</div>' +
+      App.step(1, '주소창 왼쪽 <b>자물쇠 🔒</b> (또는 ⓘ) 를 누릅니다.') +
+      App.step(2, '<b>"권한"</b> → <b>"알림"</b> 을 누릅니다.') +
+      App.step(3, '<b>"허용"</b>으로 바꿉니다.') +
+      App.step(4, '안 보이면 휴대폰 <b>설정 → 앱 → Chrome → 알림</b>을 켜주세요.');
+  },
+
+  guideWindowsBrowsers: function() {
+    return '<div class="guide-title">💻 컴퓨터(윈도우) 권장 브라우저</div>' +
+      App.step(1, '<b>크롬(Chrome)</b> 또는 <b>엣지(Edge)</b> 최신 버전을 사용하세요.') +
+      App.step(2, '인터넷 익스플로러(IE)는 알림을 <b>지원하지 않습니다.</b>') +
+      App.step(3, '주소창에 <b>chrome://settings/content/notifications</b> 를 입력하면 알림 설정으로 바로 갈 수 있습니다.');
+  },
+
+  // 실제 알림 권한 요청 + 토큰 등록
+  enablePush: function() {
+    if (!('Notification' in window)) { App.toast('이 브라우저는 알림을 지원하지 않습니다.'); return; }
+    Notification.requestPermission().then(function(p){
+      if (p === 'granted') {
+        App.registerToken();
+        App.toast('알림이 켜졌습니다.');
+        App.openAlarmSetup(); // 화면 갱신
+      } else if (p === 'denied') {
+        App.openAlarmSetup(); // 차단 안내로 갱신
+      }
+    });
+  },
+
+  // FCM 토큰 등록 (Firebase 설정이 채워져 있어야 동작)
+  registerToken: function() {
+    if (!FIREBASE_CONFIG.appId || FIREBASE_CONFIG.appId.indexOf('YOUR_') === 0) {
+      console.warn('[푸시] Firebase 설정(appId 등)이 아직 비어 있습니다.');
       return;
     }
-
-    Notification.requestPermission().then(function(permission) {
-      console.log('[App.requestPush] 권한 결과:', permission);
-      document.getElementById('push-banner').style.display = 'none';
-
-      if (permission === 'granted') {
-        App.pushEnabled = true;
-        document.getElementById('push-toggle').classList.add('on');
-        App.saveFcmToken();
-      } else if (permission === 'denied') {
-        App.showPushDeniedGuide();
-      }
-    });
-  },
-
-  // ── FCM 토큰 발급 및 GAS에 저장 ──
-  saveFcmToken: function() {
-    if (!('serviceWorker' in navigator)) return;
-
-    navigator.serviceWorker.ready.then(function(reg) {
-      // Firebase Messaging SDK 필요 (sw.js에서 처리)
-      // 여기서는 push 구독 방식 사용
-      reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: App._urlBase64ToUint8Array(VAPID_KEY)
-      }).then(function(sub) {
-        var token = JSON.stringify(sub);
-        console.log('[App.saveFcmToken] 구독 완료');
-
-        // GAS에 토큰 저장
-        fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'saveFcmToken', token: token, email: App.user ? App.user.email : '' })
-        }).then(function(r) { return r.json(); })
-          .then(function(d) { console.log('[App.saveFcmToken] 저장 결과:', d); })
-          .catch(function(e) { console.error('[App.saveFcmToken] 저장 실패:', e); });
-      }).catch(function(err) {
-        console.error('[App.saveFcmToken] 구독 실패:', err);
+    try {
+      if (typeof firebase === 'undefined') { console.warn('[푸시] Firebase SDK 미로딩'); return; }
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      var messaging = firebase.messaging();
+      navigator.serviceWorker.ready.then(function(reg){
+        messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg })
+          .then(function(token){
+            if (!token) return;
+            api({ action:'saveToken', sabun: App.user.sabun, token: token })
+              .then(function(d){ console.log('[푸시] 토큰 저장:', d); });
+          })
+          .catch(function(err){ console.error('[푸시] 토큰 발급 실패:', err); });
       });
-    });
+    } catch (e) { console.error('[푸시] 오류:', e); }
   },
 
-  // ── fetch 재시도 유틸 ──
-  _fetchWithRetry: function(url, retries) {
-    return fetch(url).then(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    }).catch(function(err) {
-      if (retries > 1) {
-        console.warn('[_fetchWithRetry] 재시도...', err.message);
-        return new Promise(function(resolve) { setTimeout(resolve, 1500); })
-          .then(function() { return App._fetchWithRetry(url, retries - 1); });
-      }
-      throw err;
-    });
-  },
-
-  // ── VAPID 키 변환 유틸 ──
-  _urlBase64ToUint8Array: function(base64String) {
-    var padding = '='.repeat((4 - base64String.length % 4) % 4);
-    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    var rawData = window.atob(base64);
-    return new Uint8Array(Array.from(rawData).map(function(c) { return c.charCodeAt(0); }));
-  },
-
-  // ── 토스트 메시지 ──
-  showToast: function(msg) {
+  toast: function(msg) {
     var el = document.getElementById('toast');
-    el.textContent = msg;
+    el.innerHTML = msg;
     el.style.display = 'block';
-    setTimeout(function() { el.style.display = 'none'; }, 3000);
+    clearTimeout(App._t);
+    App._t = setTimeout(function(){ el.style.display = 'none'; }, 3500);
   }
 };
 
-// 앱 시작
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 App.init();
 </script>
 </body>
