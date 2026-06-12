@@ -11,7 +11,6 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <style>
-    /* ===== 50~60대 배려: 큰 글씨(기본 18px), 큰 버튼(최소 52px) ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
@@ -20,25 +19,16 @@
       -webkit-tap-highlight-color: transparent;
     }
     button { font-family: inherit; font-size: 18px; cursor: pointer; }
-
-    /* 로딩 */
     #loading { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; gap:18px; }
     .spinner { width:42px; height:42px; border:4px solid #d5dde8; border-top-color:#185FA5; border-radius:50%; animation:spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p { font-size:17px; color:#777; }
-
-    /* 공통 컨테이너 */
     .wrap { max-width:480px; margin:0 auto; min-height:100vh; background:#fff; display:flex; flex-direction:column; }
-
-    /* 로그인 */
     #login-screen { display:none; flex-direction:column; padding:28px 22px; gap:18px; }
     #login-screen .logo { font-size:26px; font-weight:800; color:#185FA5; text-align:center; margin-top:24px; }
     #login-screen .sub { font-size:17px; color:#666; text-align:center; }
     .label { font-size:17px; font-weight:700; color:#333; margin-bottom:6px; }
-    #emp-search, #pw-input {
-      width:100%; padding:16px; border:2px solid #d5dde8; border-radius:14px;
-      font-size:19px; outline:none; min-height:56px;
-    }
+    #emp-search, #pw-input { width:100%; padding:16px; border:2px solid #d5dde8; border-radius:14px; font-size:19px; outline:none; min-height:56px; }
     #emp-search:focus, #pw-input:focus { border-color:#185FA5; }
     #emp-list { max-height:300px; overflow-y:auto; border:2px solid #eef1f5; border-radius:14px; margin-top:8px; }
     #emp-list:empty { display:none; }
@@ -50,38 +40,19 @@
     .selected-emp { background:#eaf3ff; border:2px solid #185FA5; border-radius:14px; padding:16px; display:flex; justify-content:space-between; align-items:center; }
     .selected-emp .nm { font-size:20px; font-weight:800; color:#185FA5; }
     .selected-emp .chg { font-size:15px; color:#185FA5; text-decoration:underline; }
-
-    .btn-primary {
-      width:100%; min-height:56px; background:#185FA5; color:#fff; border:none;
-      border-radius:14px; font-size:20px; font-weight:800; margin-top:4px;
-    }
+    .btn-primary { width:100%; min-height:56px; background:#185FA5; color:#fff; border:none; border-radius:14px; font-size:20px; font-weight:800; margin-top:4px; }
     .btn-primary:active { background:#12477c; }
     .btn-primary:disabled { background:#9bb6d2; }
-
-    /* 메인 앱 */
     #app { display:none; flex-direction:column; height:100vh; }
-    .app-header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:16px 18px; background:#185FA5; color:#fff;
-    }
+    .app-header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; background:#185FA5; color:#fff; }
     .app-header .title { font-size:20px; font-weight:800; }
     .app-header .who { font-size:14px; opacity:.9; margin-top:2px; }
-    .bell-btn {
-      background:rgba(255,255,255,.18); border:none; color:#fff;
-      min-width:52px; min-height:52px; border-radius:14px; font-size:24px;
-      display:flex; align-items:center; justify-content:center;
-    }
+    .bell-btn { background:rgba(255,255,255,.18); border:none; color:#fff; min-width:52px; min-height:52px; border-radius:14px; font-size:24px; display:flex; align-items:center; justify-content:center; }
     .bell-btn:active { background:rgba(255,255,255,.32); }
-
     .action-bar { display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid #eef1f5; }
-    .btn-ghost {
-      flex:1; min-height:48px; background:#eef3f9; color:#185FA5; border:2px solid #d6e3f1;
-      border-radius:12px; font-weight:700; font-size:16px;
-    }
+    .btn-ghost { flex:1; min-height:48px; background:#eef3f9; color:#185FA5; border:2px solid #d6e3f1; border-radius:12px; font-weight:700; font-size:16px; }
     .btn-ghost:active { background:#dde9f6; }
-
     .list { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
-
     .card { background:#fff; border:2px solid #eef1f5; border-radius:16px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
     .card .top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
     .card .nm { font-size:19px; font-weight:800; }
@@ -93,64 +64,39 @@
     .card .meta { font-size:16px; color:#555; margin-top:10px; }
     .card .meta b { color:#1a1a1a; }
     .card .row2 { display:flex; justify-content:flex-end; margin-top:14px; }
-    .btn-del {
-      min-height:48px; min-width:96px; background:#fff; color:#A32D2D;
-      border:2px solid #f0c9c9; border-radius:12px; font-weight:700; font-size:16px; padding:0 18px;
-    }
+    .btn-del { min-height:48px; min-width:96px; background:#fff; color:#A32D2D; border:2px solid #f0c9c9; border-radius:12px; font-weight:700; font-size:16px; padding:0 18px; }
     .btn-del:active { background:#fcebeb; }
-
     .empty { text-align:center; color:#aaa; padding:60px 20px; font-size:18px; line-height:1.7; }
-
-    /* 알림설정 모달 */
     .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end; }
-    .modal {
-      background:#fff; width:100%; max-width:480px; margin:0 auto; border-radius:22px 22px 0 0;
-      max-height:90vh; overflow-y:auto; padding:24px 22px 36px;
-    }
+    .modal { background:#fff; width:100%; max-width:480px; margin:0 auto; border-radius:22px 22px 0 0; max-height:90vh; overflow-y:auto; padding:24px 22px 36px; }
     .modal h2 { font-size:22px; font-weight:800; margin-bottom:6px; }
     .modal .desc { font-size:16px; color:#666; margin-bottom:18px; }
-    .step {
-      display:flex; gap:14px; align-items:flex-start; padding:14px;
-      background:#f6f8fb; border-radius:14px; margin-bottom:12px;
-    }
-    .step .num {
-      flex-shrink:0; width:34px; height:34px; border-radius:50%; background:#185FA5; color:#fff;
-      font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center;
-    }
+    .step { display:flex; gap:14px; align-items:flex-start; padding:14px; background:#f6f8fb; border-radius:14px; margin-bottom:12px; }
+    .step .num { flex-shrink:0; width:34px; height:34px; border-radius:50%; background:#185FA5; color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; }
     .step .txt { font-size:17px; line-height:1.55; }
     .step .txt b { color:#185FA5; }
     .modal .note { font-size:15px; color:#A32D2D; background:#fcf0f0; border-radius:12px; padding:12px 14px; margin:8px 0 16px; }
     .modal .ok-banner { font-size:16px; color:#3B6D11; background:#eef7e0; border-radius:12px; padding:14px; margin-bottom:16px; font-weight:700; text-align:center; }
     .btn-close { width:100%; min-height:54px; background:#eef1f5; color:#333; border:none; border-radius:14px; font-weight:700; font-size:18px; margin-top:10px; }
     .guide-title { font-size:18px; font-weight:800; margin:18px 0 10px; color:#185FA5; display:flex; align-items:center; gap:8px; }
-
-    /* 토스트 */
-    #toast {
-      position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
-      background:#262b33; color:#fff; padding:14px 22px; border-radius:14px;
-      font-size:16px; display:none; z-index:200; max-width:90%; text-align:center; line-height:1.5;
-    }
+    #toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#262b33; color:#fff; padding:14px 22px; border-radius:14px; font-size:16px; display:none; z-index:200; max-width:90%; text-align:center; line-height:1.5; }
   </style>
 </head>
 <body>
 
-<!-- 로딩 -->
 <div id="loading">
   <div class="spinner"></div>
   <p>불러오는 중...</p>
 </div>
 
-<!-- 로그인 -->
 <div class="wrap" id="login-screen">
   <div class="logo">🏥 휴가 알림</div>
   <div class="sub">본인 이름을 찾아 선택한 뒤<br>비밀번호를 입력하세요</div>
-
   <div id="step-select">
     <div class="label">1. 이름 검색</div>
     <input id="emp-search" type="text" placeholder="이름을 입력하세요" oninput="App.filterEmp(this.value)" autocomplete="off">
     <div id="emp-list"></div>
   </div>
-
   <div id="step-pw" style="display:none">
     <div class="selected-emp">
       <div><div class="nm" id="sel-name">-</div><div class="inf" id="sel-info"></div></div>
@@ -158,92 +104,65 @@
     </div>
     <div style="height:16px"></div>
     <div class="label">2. 비밀번호</div>
-    <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="current-password"
-           onkeydown="if(event.key==='Enter')App.doLogin()">
+    <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')App.doLogin()">
     <div style="height:16px"></div>
     <button class="btn-primary" id="login-btn" onclick="App.doLogin()">로그인</button>
   </div>
 </div>
 
-<!-- 메인 앱 -->
 <div class="wrap" id="app">
   <div class="app-header">
     <div>
-      <div class="title">📋 결재 알림</div>
+      <div class="title">📋 대기 결재</div>
       <div class="who" id="who"></div>
     </div>
     <button class="bell-btn" onclick="App.openAlarmSetup()" title="알림 설정">🔔</button>
   </div>
-
   <div class="action-bar">
     <button class="btn-ghost" onclick="App.loadNotifs()">🔄 새로고침</button>
     <button class="btn-ghost" onclick="App.clearAll()">✓ 전체 읽음 처리</button>
   </div>
-
   <div class="list" id="notif-list"></div>
 </div>
 
-<!-- 알림설정 모달 -->
 <div class="modal-bg" id="alarm-modal">
   <div class="modal" id="alarm-modal-inner"></div>
 </div>
 
-<!-- 토스트 -->
 <div id="toast"></div>
 
 <script>
-// ============================================================
-// [설정]
-// ============================================================
-// dhuhq 운영 GAS 배포 주소
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbyILWUloKwZ1tmxXmKaK-SyEZdpTnBX1uC-LDHYIz0I-3iKKNVbisGAxAnLaQZkkiKvgA/exec';
-
-// 알림 클릭 시 열릴 주소
 var DEEP_LINK = GAS_URL;
-
-// ── Firebase 푸시 설정 (★ Firebase 콘솔에서 실제 값으로 채워야 '푸시 수신'이 동작합니다) ──
-// Firebase 콘솔 → 프로젝트 설정 → 일반 → 내 앱 → "SDK 설정 및 구성"에서 복사
 var FIREBASE_CONFIG = {
-  apiKey: 'YOUR_WEB_API_KEY',                 // ★ 채우기
+  apiKey: 'YOUR_WEB_API_KEY',
   authDomain: 'dhu-leave-notify-db94c.firebaseapp.com',
   projectId: 'dhu-leave-notify-db94c',
-  messagingSenderId: 'YOUR_SENDER_ID',        // ★ 채우기
-  appId: 'YOUR_APP_ID'                        // ★ 채우기
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId: 'YOUR_APP_ID'
 };
 var VAPID_KEY = 'BPCmKdfsgJp0-JL2edCcbY5RVLOI6ZxHzihEgozbuaOiBryH_mFIB17HQltvWlu_qy_rfvJffZle3-r_MfY-H4A';
 
-// ============================================================
-// 통신 헬퍼 — CORS 우회를 위해 Content-Type 을 지정하지 않습니다(text/plain)
-// ============================================================
 function api(payload) {
   return fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload), redirect:'follow' })
     .then(function(r){ return r.json(); });
 }
 
-// ============================================================
-// 앱
-// ============================================================
-var STATUS_CHIP = {
-  '대기': 'chip-wait', '승인': 'chip-ok', '반려': 'chip-no', '취소': 'chip-no'
-};
+var STATUS_CHIP = { '대기':'chip-wait', '승인':'chip-ok', '반려':'chip-no', '취소':'chip-no' };
 
 var App = {
   user: null,
   _emps: [],
   _selected: null,
+  _curItems: [],
 
   init: function() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(function(){});
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function(){}); }
     var saved = sessionStorage.getItem('pwaUser');
-    if (saved) {
-      try { App.user = JSON.parse(saved); App.showApp(); return; } catch(e){}
-    }
+    if (saved) { try { App.user = JSON.parse(saved); App.showApp(); return; } catch(e){} }
     App.showLogin();
   },
 
-  // ---------- 로그인 ----------
   showLogin: function() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
@@ -263,9 +182,7 @@ var App = {
   filterEmp: function(q) {
     q = (q || '').trim();
     if (!q) { App.renderEmps(App._emps); return; }
-    App.renderEmps(App._emps.filter(function(e){
-      return e.name.indexOf(q) > -1 || e.dept.indexOf(q) > -1;
-    }));
+    App.renderEmps(App._emps.filter(function(e){ return e.name.indexOf(q) > -1 || e.dept.indexOf(q) > -1; }));
   },
 
   renderEmps: function(list) {
@@ -313,11 +230,11 @@ var App = {
       .catch(function(){ btn.disabled=false; btn.textContent='로그인'; App.toast('네트워크 오류. 다시 시도해 주세요.'); });
   },
 
-  // ---------- 메인 ----------
   showApp: function() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
+    document.querySelector('#app .title').textContent = App.user.isApprover ? '📋 대기 결재' : '📋 내 휴가 신청';
     document.getElementById('who').textContent = App.user.name + ' 님 · ' + (App.user.dept || '');
     App.loadNotifs();
   },
@@ -325,7 +242,8 @@ var App = {
   loadNotifs: function() {
     var el = document.getElementById('notif-list');
     el.innerHTML = '<div class="empty"><div class="spinner" style="margin:0 auto 14px"></div>불러오는 중...</div>';
-    api({ action:'notifications', sabun: App.user.sabun })
+    var action = App.user.isApprover ? 'pending' : 'myList';
+    api({ action: action, sabun: App.user.sabun, position: App.user.position })
       .then(function(d){
         if (!d.ok) { el.innerHTML = '<div class="empty">' + esc(d.error || '불러오지 못했습니다.') + '</div>'; return; }
         App.renderNotifs(d.items || []);
@@ -335,62 +253,60 @@ var App = {
 
   renderNotifs: function(items) {
     var el = document.getElementById('notif-list');
-    if (!items || items.length === 0) {
-      el.innerHTML = '<div class="empty">📭 새 결재 알림이 없습니다.</div>';
-      return;
-    }
+    var dismissed = App.getDismissed();
+    items = (items || []).filter(function(it){ return dismissed.indexOf(String(it.id)) === -1; });
+    App._curItems = items;
+    if (items.length === 0) { el.innerHTML = '<div class="empty">📭 대기 중인 결재가 없습니다.</div>'; return; }
     el.innerHTML = items.map(function(it){
       var st = it.status || '대기';
       var chip = STATUS_CHIP[st] || 'chip-wait';
       var period = esc(it.startDate || '');
       if (it.endDate && it.endDate !== it.startDate) period += ' ~ ' + esc(it.endDate);
+      else if (it.startType) period += ' ' + esc(it.startType);
       return '<div class="card">' +
         '<div class="top">' +
-          '<div><span class="nm">' + esc(it.name || '신청') + '</span><span class="dept">' + esc(it.dept || '') + '</span></div>' +
+          '<div><span class="nm">' + esc(it.name || App.user.name || '신청') + '</span><span class="dept">' + esc(it.dept || '') + '</span></div>' +
           '<span class="chip ' + chip + '">' + esc(st) + '</span>' +
         '</div>' +
         '<div class="meta">휴가종류 : <b>' + esc(it.leaveType || '-') + '</b></div>' +
-        '<div class="meta">기간 : <b>' + period + '</b>' + (it.days ? ' (' + esc(it.days) + '일)' : '') + '</div>' +
-        '<div class="row2"><button class="btn-del" onclick="App.delNotif(\'' + esc(it.docId) + '\', this)">알림 삭제</button></div>' +
+        '<div class="meta">기간 : <b>' + period + '</b></div>' +
+        '<div class="row2"><button class="btn-del" onclick="App.dismiss(\'' + esc(String(it.id)) + '\', this)">알림 지우기</button></div>' +
       '</div>';
     }).join('');
   },
 
-  delNotif: function(docId, btn) {
-    btn.disabled = true; btn.textContent = '삭제 중...';
-    api({ action:'deleteNotif', docId: docId })
-      .then(function(d){
-        if (d.ok) { var card = btn.closest('.card'); if (card) card.remove(); App.checkEmpty(); }
-        else { btn.disabled=false; btn.textContent='알림 삭제'; App.toast(d.error || '삭제 실패'); }
-      })
-      .catch(function(){ btn.disabled=false; btn.textContent='알림 삭제'; App.toast('네트워크 오류'); });
+  getDismissed: function() {
+    try { return JSON.parse(localStorage.getItem('dismissed_' + App.user.sabun) || '[]'); } catch(e){ return []; }
   },
-
+  saveDismissed: function(arr) {
+    try { localStorage.setItem('dismissed_' + App.user.sabun, JSON.stringify(arr)); } catch(e){}
+  },
+  dismiss: function(id, btn) {
+    var arr = App.getDismissed();
+    if (arr.indexOf(String(id)) === -1) arr.push(String(id));
+    App.saveDismissed(arr);
+    var card = btn.closest('.card'); if (card) card.remove();
+    App.checkEmpty();
+  },
   clearAll: function() {
-    if (!confirm('모든 알림을 읽음 처리(삭제)할까요?\n실제 결재 내용은 그대로 유지됩니다.')) return;
-    App.toast('처리 중...');
-    api({ action:'clearNotifs', sabun: App.user.sabun })
-      .then(function(d){
-        if (d.ok) { App.renderNotifs([]); App.toast('전체 읽음 처리되었습니다.'); }
-        else App.toast(d.error || '처리 실패');
-      })
-      .catch(function(){ App.toast('네트워크 오류'); });
+    if (!(App._curItems && App._curItems.length)) { App.toast('지울 알림이 없습니다.'); return; }
+    if (!confirm('지금 보이는 알림을 모두 지울까요?\n실제 결재 내용은 그대로 유지됩니다.')) return;
+    var arr = App.getDismissed();
+    App._curItems.forEach(function(it){ if (arr.indexOf(String(it.id)) === -1) arr.push(String(it.id)); });
+    App.saveDismissed(arr);
+    App.renderNotifs([]);
+    App.toast('모두 지웠습니다.');
   },
-
   checkEmpty: function() {
     var el = document.getElementById('notif-list');
-    if (!el.querySelector('.card')) el.innerHTML = '<div class="empty">📭 새 결재 알림이 없습니다.</div>';
+    if (!el.querySelector('.card')) el.innerHTML = '<div class="empty">📭 대기 중인 결재가 없습니다.</div>';
   },
 
-  // ---------- 알림 설정 ----------
   openAlarmSetup: function() {
-    var inner = document.getElementById('alarm-modal-inner');
-    inner.innerHTML = App.buildAlarmHTML();
+    document.getElementById('alarm-modal-inner').innerHTML = App.buildAlarmHTML();
     document.getElementById('alarm-modal').style.display = 'flex';
   },
-  closeAlarmSetup: function() {
-    document.getElementById('alarm-modal').style.display = 'none';
-  },
+  closeAlarmSetup: function() { document.getElementById('alarm-modal').style.display = 'none'; },
 
   buildAlarmHTML: function() {
     var supported = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
@@ -398,18 +314,13 @@ var App = {
     var ua = navigator.userAgent;
     var isIOS = /iphone|ipad|ipod/i.test(ua);
     var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-
     var html = '<h2>🔔 알림 설정</h2>';
-
-    // 1) 미지원 환경
     if (!supported && !isIOS) {
       html += '<div class="note">이 브라우저는 알림(푸시)을 지원하지 않습니다.<br>아래 권장 브라우저로 다시 접속해 주세요.</div>';
       html += App.guideWindowsBrowsers();
       html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
       return html;
     }
-
-    // 2) iOS: 홈 화면 추가가 필수
     if (isIOS && !isStandalone) {
       html += '<div class="desc">아이폰·아이패드는 <b>홈 화면에 추가</b>해야만 알림을 받을 수 있습니다.</div>';
       html += '<div class="guide-title">📱 아이폰 홈 화면 추가 방법</div>';
@@ -422,16 +333,12 @@ var App = {
       html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
       return html;
     }
-
-    // 3) 이미 허용됨
     if (perm === 'granted') {
       html += '<div class="ok-banner">✅ 알림이 켜져 있습니다.<br>승인·반려가 되면 휴대폰으로 알려드립니다.</div>';
       html += '<button class="btn-primary" onclick="App.enablePush()">알림 다시 등록하기</button>';
       html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
       return html;
     }
-
-    // 4) 아직 안 물어봄 → 허용 요청
     if (perm === 'default') {
       html += '<div class="desc">아래 버튼을 누르면 "알림을 허용하시겠어요?" 라는 물음이 나옵니다. <b>허용</b>을 눌러주세요.</div>';
       html += '<button class="btn-primary" onclick="App.enablePush()">알림 허용하기</button>';
@@ -439,8 +346,6 @@ var App = {
       html += '<button class="btn-close" onclick="App.closeAlarmSetup()">닫기</button>';
       return html;
     }
-
-    // 5) 차단됨(denied) → 브라우저/OS별 해제 방법
     html += '<div class="note">현재 알림이 <b>차단</b>되어 있습니다.<br>아래 방법으로 차단을 풀어주세요.</div>';
     html += App.guideByBrowser(ua);
     html += '<div class="desc" style="margin-top:14px">👉 설정을 바꾼 뒤, 이 <b>🔔 알림 설정</b>을 다시 눌러주세요.</div>';
@@ -448,9 +353,7 @@ var App = {
     return html;
   },
 
-  step: function(n, txt) {
-    return '<div class="step"><div class="num">' + n + '</div><div class="txt">' + txt + '</div></div>';
-  },
+  step: function(n, txt) { return '<div class="step"><div class="num">' + n + '</div><div class="txt">' + txt + '</div></div>'; },
 
   guideByBrowser: function(ua) {
     if (/SamsungBrowser/i.test(ua)) {
@@ -471,7 +374,6 @@ var App = {
         App.step(2, '<b>"권한 수정"</b> 에서 알림을 찾습니다.') +
         App.step(3, '<b>"허용"</b>으로 바꿉니다.');
     }
-    // 기본: 안드로이드 크롬
     return '<div class="guide-title">📱 크롬(Chrome)</div>' +
       App.step(1, '주소창 왼쪽 <b>자물쇠 🔒</b> (또는 ⓘ) 를 누릅니다.') +
       App.step(2, '<b>"권한"</b> → <b>"알림"</b> 을 누릅니다.') +
@@ -486,37 +388,23 @@ var App = {
       App.step(3, '주소창에 <b>chrome://settings/content/notifications</b> 를 입력하면 알림 설정으로 바로 갈 수 있습니다.');
   },
 
-  // 실제 알림 권한 요청 + 토큰 등록
   enablePush: function() {
     if (!('Notification' in window)) { App.toast('이 브라우저는 알림을 지원하지 않습니다.'); return; }
     Notification.requestPermission().then(function(p){
-      if (p === 'granted') {
-        App.registerToken();
-        App.toast('알림이 켜졌습니다.');
-        App.openAlarmSetup(); // 화면 갱신
-      } else if (p === 'denied') {
-        App.openAlarmSetup(); // 차단 안내로 갱신
-      }
+      if (p === 'granted') { App.registerToken(); App.toast('알림이 켜졌습니다.'); App.openAlarmSetup(); }
+      else if (p === 'denied') { App.openAlarmSetup(); }
     });
   },
 
-  // FCM 토큰 등록 (Firebase 설정이 채워져 있어야 동작)
   registerToken: function() {
-    if (!FIREBASE_CONFIG.appId || FIREBASE_CONFIG.appId.indexOf('YOUR_') === 0) {
-      console.warn('[푸시] Firebase 설정(appId 등)이 아직 비어 있습니다.');
-      return;
-    }
+    if (!FIREBASE_CONFIG.appId || FIREBASE_CONFIG.appId.indexOf('YOUR_') === 0) { console.warn('[푸시] Firebase 설정이 비어 있습니다.'); return; }
     try {
       if (typeof firebase === 'undefined') { console.warn('[푸시] Firebase SDK 미로딩'); return; }
       if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
       var messaging = firebase.messaging();
       navigator.serviceWorker.ready.then(function(reg){
         messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg })
-          .then(function(token){
-            if (!token) return;
-            api({ action:'saveToken', sabun: App.user.sabun, token: token })
-              .then(function(d){ console.log('[푸시] 토큰 저장:', d); });
-          })
+          .then(function(token){ if (token) api({ action:'saveToken', sabun: App.user.sabun, token: token }); })
           .catch(function(err){ console.error('[푸시] 토큰 발급 실패:', err); });
       });
     } catch (e) { console.error('[푸시] 오류:', e); }
